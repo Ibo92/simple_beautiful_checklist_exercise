@@ -35,4 +35,10 @@ class MockDatabaseRepository implements DatabaseRepository {
       _items[index] = newItem;
     }
   }
+
+  // <-- NEU: implementiere clear() für MockRepository
+  @override
+  Future<void> clear() async {
+    _items.clear(); // alle Einträge löschen
+  }
 }
