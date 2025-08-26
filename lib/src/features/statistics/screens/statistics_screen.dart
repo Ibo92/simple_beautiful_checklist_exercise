@@ -26,10 +26,27 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       });
     }
   }
-
+//Und wenn die Liste in ListScreen geändert wird, kann man per Navigator.push zurück 
+//zur Statistik setState() triggern oder ValueNotifier/Provider verwenden.
   @override
+void initState() {
+  super.initState();
+  _loadItemCount();
+}
+
+Future<void> _loadItemCount() async {
+  final count = await widget.repository.getItemCount();
+  if (mounted) {
+    setState(() {
+      currentTaskCount = count;
+    });
+  }
+}
+
+@override
+
   Widget build(BuildContext context) {
-    loadItemCount();
+    //loadItemCount();
 
     return Scaffold(
       appBar: AppBar(

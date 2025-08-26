@@ -23,14 +23,29 @@ class _ListScreenState extends State<ListScreen> {
   @override
   void initState() {
     super.initState();
-    _updateList();
+    _updateList(); // initial laden
   }
 
-  void _updateList() async {
-    _items.clear();
-    _items.addAll(await widget.repository.getItems());
-    isLoading = false;
-    setState(() {});
+  // <-- Änderung: Rückgabewert von Future<void> anpassen, damit await funktioniert
+  Future<void> _updateList() async {
+    setState(() {
+      isLoading = true; // Ladeindikator
+    });
+
+    try {
+      final itemsFromRepo = await widget.repository.getItems(); // alle Items holen
+          print("DEBUG: Items geladen: $itemsFromRepo"); // <-- Check
+
+      _items
+        ..clear()
+        ..addAll(itemsFromRepo); // Liste aktualisieren
+    } catch (e) {
+      print("Fehler beim Laden der Items: $e");
+    } finally {
+      setState(() {
+        isLoading = false; // Ladeindikator aus
+      });
+    }
   }
 
   @override
@@ -49,7 +64,7 @@ class _ListScreenState extends State<ListScreen> {
                       : ItemList(
                           repository: widget.repository,
                           items: _items,
-                          updateOnChange: _updateList,
+                          updateOnChange: _updateList, // <-- Änderung: 
                         ),
                 ),
                 Padding(
@@ -60,22 +75,39 @@ class _ListScreenState extends State<ListScreen> {
                       labelText: 'Task Hinzufügen',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.add),
-                        onPressed: () {
+                        onPressed: () async {
+                          // <-- Änderung: await bei addItem + _updateList
                           if (_controller.text.isNotEmpty) {
-                            widget.repository.addItem(_controller.text);
+                            await widget.repository.addItem(_controller.text);
+                                print("DEBUG: hinzugefügt: ${_controller.text}"); // 
+
                             _controller.clear();
-                            _updateList();
+                            await _updateList(); // Liste aktualisieren
                           }
                         },
                       ),
                     ),
-                    onSubmitted: (value) {
+                    onSubmitted: (value) async {
+                      // <-- Änderung: await bei addItem + _updateList
                       if (value.isNotEmpty) {
-                        widget.repository.addItem(value);
+                        await widget.repository.addItem(value);
+                            print("DEBUG: hinzugefügt: $value"); // <-- 
+
                         _controller.clear();
-                        _updateList();
+                        await _updateList(); // Liste aktualisieren
                       }
                     },
+                  ),
+                ),
+                // Optional: Button zum Testen von clear()
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await widget.repository.clear(); // alles löschen
+                      await _updateList(); // Liste neu laden
+                    },
+                    child: const Text("Alles löschen"), // <-- Testbutton
                   ),
                 ),
               ],

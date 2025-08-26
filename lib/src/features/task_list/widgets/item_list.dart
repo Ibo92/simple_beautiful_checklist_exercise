@@ -11,7 +11,7 @@ class ItemList extends StatelessWidget {
 
   final DatabaseRepository repository;
   final List<String> items;
-  final void Function() updateOnChange;
+  final Future<void> Function() updateOnChange; // vorher: void Function()
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +50,10 @@ class ItemList extends StatelessWidget {
                           ),
                           TextButton(
                             child: const Text('Speichern'),
-                            onPressed: () {
-                              repository.editItem(index, editController.text);
-                              updateOnChange();
+                            //hier müssen wir async fügen, damit await arbeitet
+                            onPressed: () async {
+                             await repository.editItem(index, editController.text); //Ä
+                             await updateOnChange();//Ä
                               Navigator.of(context).pop();
                             },
                           ),
@@ -64,9 +65,12 @@ class ItemList extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.delete),
-                onPressed: () {
-                  repository.deleteItem(index);
-                  updateOnChange();
+                //Ä
+                onPressed: () async {
+                 await repository.deleteItem(index);
+                 await updateOnChange();
+                 //Damit wird garantiert, 
+                 //dass die UI erst aktualisiert wird, nachdem SharedPreferences die Änderungen gespeichert hat.
                 },
               ),
             ],
